@@ -7,6 +7,7 @@ from StillMode import *
 from RainbowMode import *
 from DayAndNightMode import *
 from PartyMode import *
+from MusicMode import *
 
 class MQTTService:
     
@@ -82,6 +83,11 @@ class MQTTService:
                 speed = float(params[1])
                 mode = PartyMode(variant, speed)
                 
+            if "MUSIC" in topic:
+                variant = int(params[0])
+                shape = int(params[1])
+                mode = MusicMode(variant, shape)
+                
             if "WORLD" in topic: # set mode fpr all continents
                 worlds["WORLD"].setMode(mode)
                 worlds["WORLD"].publishMode(self)
@@ -89,7 +95,7 @@ class MQTTService:
             else:
                 for c in continents.values():
                     if c.name in topic:
-                        c.setMode(mode)
+                        c.setMode(mode.copy())
                         c.publishMode(self)
                 
         elif "GET_BRIGHTNESS" in topic:

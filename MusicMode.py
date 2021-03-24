@@ -7,26 +7,11 @@ import numpy as np
 from scipy.ndimage.filters import gaussian_filter1d
 from time import time
 from base_classes import *
-#from microphone import *
 
 import pyaudio
 import config
 import dsp
 
-# FPS = 60
-# Desired refresh rate of the visualization (frames per second)
-
-# MIC_RATE = 44100
-# Sampling frequency of the microphone in Hz
-
-# MIN_FREQUENCY = 200
-# Frequencies below this value will be removed during audio processing
-
-# MAX_FREQUENCY = 12000
-# Frequencies above this value will be removed during audio processing
-
-# MIN_VOLUME_THRESHOLD = 1e-7
-# No music visualization displayed if recorded audio volume below threshold
 
 SPECTRUM_PIXELS = 64
 
@@ -57,11 +42,6 @@ mel_output = np.tile(0, SPECTRUM_PIXELS)
 class MusicMode(Mode):
     key = "MUSIC"
     
-    #_time_prev = time.time() * 1000.0
-    #"""The previous time that the frames_per_second() function was called"""
-
-    #_fps = dsp.ExpFilter(val=config.FPS, alpha_decay=0.2, alpha_rise=0.2)
-    #"""The low-pass filter used to estimate frames-per-second"""
     
     def __init__(self, variant, shape):
         self.variant = variant
@@ -94,7 +74,8 @@ class MusicMode(Mode):
     def copy(self):
         return MusicMode(self.variant, self.shape)
         
-        
+    def args(self):
+        return str(self.variant) + "," + str(self.shape)
         
     def loop(self, _leds):
         
@@ -109,9 +90,6 @@ class MusicMode(Mode):
         elif self.variant == 2:
             output = self.visualize_scroll(mel_output)
             
-        
-        #if self.shape == 5 and self.variant is 0:
-        #    output = interpolate(output, 6)
         
         # Truncate values and cast to integer
         col = np.clip(output, 0, 255).astype(int)
@@ -197,7 +175,6 @@ class MusicMode(Mode):
                     
                 #led.c = C.from24bit(rgb[d])
                 strip._led_data[led.pos] = rgb[d]
-            #led.load()
         #print(time() - led_tm)
                 
         
@@ -490,7 +467,7 @@ def stop_microphone_stream():
     if pa is not None:
         pa.terminate()
         pa = None
-    print('mic srteam stopped')
+    print('mic stream stopped')
     
 def stream_active():
     return stream is not None
