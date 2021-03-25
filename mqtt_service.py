@@ -10,8 +10,6 @@ from party_mode import *
 from music_mode import *
 
 class MQTTService:
-    
-    
 
     def __init__(self):
         self.clientName = "neopixel"

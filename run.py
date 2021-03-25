@@ -20,8 +20,8 @@ mqttClient = MQTTService()
 
 
 #Global Variables
-mode = MusicMode(2, 0)
-#mode = DayAndNightMode(True, 1)
+#mode = MusicMode(2, 0)
+mode = DayAndNightMode(True, 1)
 worlds["WORLD"].setMode(mode)
 
 # ----------------MAIN-------------------

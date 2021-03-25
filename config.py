@@ -22,7 +22,7 @@ SOFTWARE_GAMMA_CORRECTION = True
 """Set to True because Raspberry Pi doesn't use hardware dithering"""
 
 
-DISPLAY_FPS = True
+DISPLAY_FPS = False
 """Whether to display the FPS when running (can reduce performance)"""
 
 N_PIXELS = 443

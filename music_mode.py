@@ -21,13 +21,17 @@ SPECTRUM_PIXELS = 64
 # 2 = scroll
 
 # shapes
-# 0 = circular out
-# 1 = horizontal (middle)
-# 2 = vertical (middle
-# 3 = horizontal (bottom)
-# 4 = vertical (left)
-# 5 = continents
-# 6 = outside in (vertical)
+# 0 = circular in - out
+# 1 = circular out - in
+# 2 = vertical in - out
+# 3 = vertical out - in
+# 4 = vertical left - right
+# 5 = vertical right - left
+# 6 = horizontal in - out
+# 7 = horizontal out- in
+# 8 = horizontal bottom - up
+# 9 = horizontal top - down
+# 10 = continental
 
 _gamma = np.load(config.GAMMA_TABLE_PATH)
 """Gamma lookup table used for nonlinear brightness correction"""
@@ -46,7 +50,7 @@ class MusicMode(Mode):
     def __init__(self, variant, shape):
         self.variant = variant
         self.shape = shape
-        self.spectrum_len = SPECTRUM_PIXELS if shape is not 5 else 6
+        self.spectrum_len = SPECTRUM_PIXELS if shape is not 10 else 6
         
         if not stream_active():
             start_microphone_stream()
@@ -89,7 +93,6 @@ class MusicMode(Mode):
             output = self.visualize_energy(mel_output)
         elif self.variant == 2:
             output = self.visualize_scroll(mel_output)
-            
         
         # Truncate values and cast to integer
         col = np.clip(output, 0, 255).astype(int)
@@ -101,87 +104,55 @@ class MusicMode(Mode):
         b = c[2][:].astype(int)
         rgb = np.bitwise_or(np.bitwise_or(r, g), b)
         
-        #led_tm = time()
+        
         color_idx = np.tile(0.0, len(_leds))
         
-        if self.shape == 0:
+        if self.shape == 0: # circular in - out
             color_idx = np.array(map(lambda led: (led.dist - 10) * 2.2, _leds))
-        
-        elif self.shape == 1:
-            color_idx = np.array(map(lambda led: abs(led.lat - 20) * 4, _leds))
-                
-        elif self.shape == 2:
+            
+        elif self.shape == 1: # circular out - in
+            color_idx = np.array(map(lambda led: abs(led.dist - 200), _leds))
+            
+        elif self.shape == 2: # vertical in - out
             color_idx = np.array(map(lambda led: abs(led.long - 20) * 2, _leds))
-                
-        elif self.shape == 3:
-            color_idx = np.array(map(lambda led: (led.lat + 45.0) * 1.5, _leds))
-                    
-        elif self.shape == 4:
+            
+        elif self.shape == 3: # vertical out - in
+            color_idx = np.array(map(lambda led: -abs(led.long - 20) + 200, _leds))
+            
+        elif self.shape == 4: # vertical left - right
             color_idx = np.array(map(lambda led: led.long + 120.0, _leds))
             
-        elif self.shape == 5:
+        elif self.shape == 5: # vertical right - left
+            color_idx = np.array(map(lambda led: 255 - (led.long + 120.0) * 0.8, _leds))
+            
+        elif self.shape == 6: # horizontal in - out
+            color_idx = np.array(map(lambda led: abs(led.lat - 20) * 4, _leds))
+                
+        elif self.shape == 7: # horizontal out - in
+            color_idx = np.array(map(lambda led: 255 - abs(led.lat - 20) * 4, _leds))
+                
+        elif self.shape == 8: # horizontal bottom - up
+            color_idx = np.array(map(lambda led: (led.lat + 45.0) * 1.5, _leds))
+                    
+        elif self.shape == 9: # horizontal top - down
+            color_idx = np.array(map(lambda led: 255 - (led.lat + 65.0) * 1.5, _leds))
+            
+        elif self.shape == 10: # continental
             color_idx = np.array(map(lambda led: 0.0 + led.continent.index, _leds))
                     
-        elif self.shape == 6:
-            color_idx = np.array(map(lambda led: -abs(led.long - 20) + 200, _leds))
-                    
-        elif self.shape == 7:
-            color_idx = np.array(map(lambda led: abs(led.dist - 200), _leds))
         
-        
-        if self.shape is not 5:
+        if self.shape is not 10:
             color_idx *= self.spectrum_len / 256
             
         color_idx = np.clip(color_idx.astype(int), 0, len(rgb) - 1)
-        #print(color_idx)
         
         for i in range(len(_leds)):
             strip._led_data[_leds[i].pos] = rgb[color_idx[i]]
         
-        #print(time() - led_tm)
-        return
-        
-        
-        for led in _leds:
-        
-            if self.shape == 5: # continent tests
-                #rgb = interpolate(rgb, 6)
-                led.c = C.from24bit(rgb[led.continent.index])
-            
-            else:
-                d = 0
-                if self.shape == 0:
-                    d = (led.dist - 10) * 2.2
-                
-                elif self.shape == 1:
-                    d = abs(led.lat - 20) * 4
-                
-                elif self.shape == 2:
-                    d = abs(led.long - 20) * 2
-                
-                elif self.shape == 3:
-                    d = (led.lat + 45.0) * 1.5
-                    
-                elif self.shape == 4:
-                    d = led.long + 100.0
-                    
-                elif self.shape == 6:
-                    d = -abs(led.long - 20) + 180
-                    
-                elif self.shape == 7:
-                    d = abs(led.dist - 200)
-                
-                d = int(max(min(d * self.spectrum_len / 256, len(rgb) - 1), 0))
-                    
-                #led.c = C.from24bit(rgb[d])
-                strip._led_data[led.pos] = rgb[d]
-        #print(time() - led_tm)
-                
         
 
     def visualize_scroll(self, y):
         """Effect that originates in the center and scrolls outwards"""
-        #global p
         y = y**3.0 # default **2.0
         self.gain.update(y)
         y /= self.gain.value
@@ -203,7 +174,6 @@ class MusicMode(Mode):
 
     def visualize_energy(self, y):
         """Effect that expands from the center with increasing sound energy"""
-        #global p
         y = np.copy(y)
         self.gain.update(y)
         
@@ -236,7 +206,6 @@ class MusicMode(Mode):
 
     def visualize_spectrum(self, y):
         """Effect that maps the Mel filterbank frequencies onto the LED strip"""
-        #global _prev_spectrum
         y = np.copy(interpolate(y, self.spectrum_len))
         self.common_mode.update(y)
         diff = y - self._prev_spectrum
