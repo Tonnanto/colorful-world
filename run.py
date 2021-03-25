@@ -6,13 +6,12 @@ import RPi.GPIO as GPIO
 import argparse
 
 #Custom Classes
-from MQTTService import *
+from mqtt_service import *
 from base_classes import *
 from continents import *
-from DayAndNightMode import *
-from RainbowMode import *
-from MusicMode import *
-#from microphone import *
+from day_and_night_mode import *
+from rainbow_mode import *
+from music_mode import *
 
 
 init_allleds()
@@ -29,7 +28,7 @@ worlds["WORLD"].setMode(mode)
 if __name__ == '__main__':
     # Process arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
+    parser.add_argument('-c', '--clear', action='store_true', help='clear LEDs on exit')
     args = parser.parse_args()
     
     

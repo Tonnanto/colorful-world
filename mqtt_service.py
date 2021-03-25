@@ -3,11 +3,11 @@ import paho.mqtt.client as mqtt
 
 
 from base_classes import *
-from StillMode import *
-from RainbowMode import *
-from DayAndNightMode import *
-from PartyMode import *
-from MusicMode import *
+from still_mode import *
+from rainbow_mode import *
+from day_and_night_mode import *
+from party_mode import *
+from music_mode import *
 
 class MQTTService:
     
